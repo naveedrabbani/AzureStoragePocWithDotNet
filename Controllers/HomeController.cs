@@ -1,0 +1,57 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using AzureQueuePocWithDotNet.Models;
+using Microsoft.Azure;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.WindowsAzure.Storage;
+
+namespace AzureQueuePocWithDotNet.Controllers
+{
+    public class HomeController : Controller
+    {
+        private IConfiguration _configuration;
+        private CloudStorageAccount storageAccount;
+
+        public HomeController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+            var storageConnectionString = _configuration["StorageConnectionString"];
+
+            storageAccount = CloudStorageAccount.Parse(
+                CloudConfigurationManager.GetSetting(storageConnectionString));
+        }
+
+        [Route("api/v0/myrestendpoint")]
+        [HttpGet]
+        public IActionResult Index()
+        {
+            var s = storageAccount.Credentials.AccountName;
+            string response = "Account Name that has been retrieved is " + s;
+            return Ok(response);
+        }
+
+        public IActionResult About()
+        {
+            ViewData["Message"] = "Your application description page.";
+
+            return View();
+        }
+
+        public IActionResult Contact()
+        {
+            ViewData["Message"] = "Your contact page.";
+
+            return View();
+        }
+
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+}
