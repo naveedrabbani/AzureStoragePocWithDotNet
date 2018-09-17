@@ -16,20 +16,23 @@ namespace AzureQueuePocWithDotNet.Controllers
     {
         private IConfiguration _configuration;
         private CloudStorageAccount storageAccount;
+        private string storageConnectionString;
 
         public HomeController(IConfiguration configuration)
         {
             _configuration = configuration;
-            var storageConnectionString = _configuration["StorageConnectionString"];
+            storageConnectionString = _configuration["StorageConnectionString"];
 
-            storageAccount = CloudStorageAccount.Parse(
-                CloudConfigurationManager.GetSetting(storageConnectionString));
+            
         }
 
         [Route("api/v0/myrestendpoint")]
         [HttpGet]
         public IActionResult GetStorageConfiguration()
         {
+
+            storageAccount = CloudStorageAccount.Parse(
+                CloudConfigurationManager.GetSetting(storageConnectionString));
             var s = storageAccount.Credentials.AccountName;
             string response = "Account Name that has been retrieved is " + s;
             return Ok(response);
