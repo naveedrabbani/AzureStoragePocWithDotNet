@@ -28,11 +28,16 @@ namespace AzureQueuePocWithDotNet.Controllers
 
         [Route("api/v0/myrestendpoint")]
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult GetStorageConfiguration()
         {
             var s = storageAccount.Credentials.AccountName;
             string response = "Account Name that has been retrieved is " + s;
             return Ok(response);
+        }
+
+        public IActionResult Index()
+        {
+            return View();
         }
 
         public IActionResult About()
