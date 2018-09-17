@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -21,9 +21,9 @@ namespace AzureQueuePocWithDotNet.Controllers
         public HomeController(IConfiguration configuration)
         {
             _configuration = configuration;
-            storageConnectionString = _configuration["StorageConnectionString"];
-
-            
+            //storageConnectionString = _configuration["StorageConnectionString"];
+            //Temporary Access Key
+            storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=storageaccounforpoc;AccountKey=HIAt8XEikd9tJQFkPEpgGh9Dg1PCZ0OQHNYK1KUoEpOIuRnvw1Xi8UOwJ9ex7aDZ4d+0CIi3oCIiG6oRp3Z9yw==;EndpointSuffix=core.windows.net";
         }
 
         [Route("api/v0/myrestendpoint")]
@@ -31,8 +31,7 @@ namespace AzureQueuePocWithDotNet.Controllers
         public IActionResult GetStorageConfiguration()
         {
 
-            storageAccount = CloudStorageAccount.Parse(
-                CloudConfigurationManager.GetSetting(storageConnectionString));
+            storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             var s = storageAccount.Credentials.AccountName;
             string response = "Account Name that has been retrieved is " + s;
             return Ok(response);
