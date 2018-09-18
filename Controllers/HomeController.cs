@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using AzureQueuePocWithDotNet.Models;
@@ -85,11 +86,11 @@ namespace AzureQueuePocWithDotNet.Controllers
 
             // Create a file in your local MyDocuments folder to upload to a blob.
             string localPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string localFileName = "QuickStart_" + Guid.NewGuid().ToString() + ".txt";
+            string localFileName = "SmartSignalPOC_" + Guid.NewGuid().ToString() + ".txt";
             string sourceFile = Path.Combine(localPath, localFileName);
             // Write text to the file.
             var writer = new System.IO.StreamWriter(localFileName);
-            writer.WriteLine("Smart Signal Test Message");
+            writer.WriteLine("Smart Signal Test Message" + Guid.NewGuid());
             writer.Dispose();
 
 
@@ -98,7 +99,37 @@ namespace AzureQueuePocWithDotNet.Controllers
             CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(localFileName);
             cloudBlockBlob.UploadFromFileAsync(sourceFile);
 
-            return Ok();
+            return Ok("Created a blob: " + localFileName);
+        }
+
+        [Route("api/v0/downloadblob/{blobId}")]
+        [HttpGet]
+        public IActionResult DownloadBlob(Guid blobId)
+        {
+
+            // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
+            CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
+
+            // Create a container called 'quickstartblobs' and append a GUID value to it to make the name unique. 
+            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("quickstartblobs" + Guid.NewGuid().ToString());
+            cloudBlobContainer.CreateAsync();
+
+            // Set the permissions so the blobs are public. 
+            BlobContainerPermissions permissions = new BlobContainerPermissions
+            {
+                PublicAccess = BlobContainerPublicAccessType.Blob
+            };
+            cloudBlobContainer.SetPermissionsAsync(permissions);
+
+            var localPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var localFileName = "SmartSignalPOC_" + blobId + ".txt";
+            var sourceFile = Path.Combine(localPath, localFileName);
+            var destinationFile = sourceFile.Replace(".txt", "_DOWNLOADED.txt");
+            Console.WriteLine("Downloading blob to {0}", destinationFile);
+            CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(localFileName);
+            cloudBlockBlob.DownloadToFileAsync(destinationFile, FileMode.Create);
+
+            return Ok("Downloaded blob: " + localFileName);
         }
 
         public IActionResult Index()
