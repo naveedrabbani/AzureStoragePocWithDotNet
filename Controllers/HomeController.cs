@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using AzureQueuePocWithDotNet.Models;
@@ -26,6 +27,7 @@ namespace AzureQueuePocWithDotNet.Controllers
         public HomeController(IConfiguration configuration)
         {
             _configuration = configuration;
+            var s = "mystring";
             var storageConnectionString = _configuration["StorageConnectionString"];
             _storageAccount = CloudStorageAccount.Parse(storageConnectionString);
 
