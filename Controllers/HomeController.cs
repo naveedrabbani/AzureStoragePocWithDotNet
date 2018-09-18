@@ -144,6 +144,13 @@ namespace AzureQueuePocWithDotNet.Controllers
             return Ok(response);
         }
 
+        [Route("api/v0/getblobdetails")]
+        [HttpGet]
+        public IActionResult DownloadBlobHelp(Guid blobId)
+        {
+            return Ok("Please add a /{blob-id} at the end of the URL");
+        }
+
         public IActionResult Index()
         {
             return View();
