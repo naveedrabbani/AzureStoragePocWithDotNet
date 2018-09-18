@@ -65,7 +65,7 @@ namespace AzureQueuePocWithDotNet.Controllers
         public IActionResult Index()
         {
             string response = $"<html><h3>Naveed's Azure Storage POC/n. The queue used is {_queue.Name}</h3></html>";
-            return Ok("Naveed's Azure Storage POC");
+            return Ok(response);
         }
 
         public IActionResult About()
