@@ -9,6 +9,7 @@ using Microsoft.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Queue;
 
 namespace AzureQueuePocWithDotNet.Controllers
 {
@@ -21,21 +22,45 @@ namespace AzureQueuePocWithDotNet.Controllers
         public HomeController(IConfiguration configuration)
         {
             _configuration = configuration;
-            //storageConnectionString = _configuration["StorageConnectionString"];
-            //Temporary Access Key
-            storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=storageaccounforpoc;AccountKey=HIAt8XEikd9tJQFkPEpgGh9Dg1PCZ0OQHNYK1KUoEpOIuRnvw1Xi8UOwJ9ex7aDZ4d+0CIi3oCIiG6oRp3Z9yw==;EndpointSuffix=core.windows.net";
+            /*storageConnectionString = _configuration["StorageConnectionString"];
+            storageAccount = CloudStorageAccount.Parse(storageConnectionString);
+
+            // Create the queue client.
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+
+            // Retrieve a reference to a container.
+            CloudQueue queue = queueClient.GetQueueReference("myqueue");
+
+            // Create the queue if it doesn't already exist
+            queue.CreateIfNotExistsAsync();*/
         }
 
         [Route("api/v0/myrestendpoint")]
         [HttpGet]
         public IActionResult GetStorageConfiguration()
         {
-
+            storageConnectionString = _configuration["StorageConnectionString"];
             storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-            var s = storageAccount.Credentials.AccountName;
-            var t =  _configuration["StorageConnectionString"];
-            string response = "Account Name that has been retrieved is " + s + " and connection from settings is " + t;
-            return Ok(response);
+
+            // Create the queue client.
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+
+            // Retrieve a reference to a container.
+            CloudQueue queue = queueClient.GetQueueReference("myqueue");
+
+            // Create the queue if it doesn't already exist
+            queue.CreateIfNotExistsAsync();
+
+            // Create a message and add it to the queue.
+            CloudQueueMessage message = new CloudQueueMessage("Hello, World");
+            queue.AddMessageAsync(message);
+
+            // Peek at the next message
+            Task<CloudQueueMessage> peekedMessage = queue.PeekMessageAsync();
+
+            var response = peekedMessage.Result.AsString;
+
+            return Ok("Message in Queue is " + response);
         }
 
         public IActionResult Index()
