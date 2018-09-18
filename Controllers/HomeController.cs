@@ -73,8 +73,8 @@ namespace AzureQueuePocWithDotNet.Controllers
             // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
             CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
 
-            // Create a container called 'quickstartblobs' and append a GUID value to it to make the name unique. 
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("quickstartblobs" + Guid.NewGuid().ToString());
+            // Create a container called 'naveed-poc' and append a GUID value to it to make the name unique. 
+            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("naveed-poc-" + Guid.NewGuid().ToString());
             cloudBlobContainer.CreateAsync();
 
             // Set the permissions so the blobs are public. 
@@ -110,8 +110,8 @@ namespace AzureQueuePocWithDotNet.Controllers
             // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
             CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
 
-            // Create a container called 'quickstartblobs' and append a GUID value to it to make the name unique. 
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("quickstartblobs" + Guid.NewGuid().ToString());
+            // Create a container called 'naveed-poc' and append a GUID value to it to make the name unique. 
+            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("naveed-poc-" + Guid.NewGuid().ToString());
             cloudBlobContainer.CreateAsync();
 
             // Set the permissions so the blobs are public. 
@@ -134,11 +134,10 @@ namespace AzureQueuePocWithDotNet.Controllers
 
         public IActionResult Index()
         {
-            string response = $"Naveed's Azure Storage POC/n. The queue used is {_queue.Name}";
-            return Ok(response);
+            return View();
         }
 
-        public IActionResult About()
+        /*public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";
 
@@ -155,6 +154,6 @@ namespace AzureQueuePocWithDotNet.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        }*/
     }
 }
