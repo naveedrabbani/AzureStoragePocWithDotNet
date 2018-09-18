@@ -43,7 +43,7 @@ namespace AzureQueuePocWithDotNet.Controllers
             storageAccount = CloudStorageAccount.Parse(storageConnectionString);
 
             // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+            /*CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
             // Retrieve a reference to a container.
             CloudQueue queue = queueClient.GetQueueReference("myqueue");
@@ -58,7 +58,8 @@ namespace AzureQueuePocWithDotNet.Controllers
             // Peek at the next message
             Task<CloudQueueMessage> peekedMessage = queue.PeekMessageAsync();
 
-            var response = peekedMessage.Result.AsString;
+            var response = peekedMessage.Result.AsString;*/
+            var response = "testing";
 
             return Ok("Message in Queue is " + response);
         }
