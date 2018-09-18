@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
@@ -12,7 +12,7 @@ public class QueueEntry
     /// <summary>
     /// Description
     /// </summary>
-    [JsonProperty(PropertyName = "queueMessage")]
+    [JsonProperty(PropertyName = "message")]
     public string QueueMessage { get; set; }
 
     /// <summary>
