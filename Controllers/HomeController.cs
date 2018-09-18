@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace AzureQueuePocWithDotNet.Controllers
 {
@@ -60,6 +62,43 @@ namespace AzureQueuePocWithDotNet.Controllers
             _queue.DeleteMessageAsync(message.Result);
 
             return Ok("Retrieved and deleted " + response + " from " + _queue.Name);
+        }
+
+        [Route("api/v0/createblob")]
+        [HttpGet]
+        public IActionResult CreateBlob()
+        {
+
+            // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
+            CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
+
+            // Create a container called 'quickstartblobs' and append a GUID value to it to make the name unique. 
+            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("quickstartblobs" + Guid.NewGuid().ToString());
+            cloudBlobContainer.CreateAsync();
+
+            // Set the permissions so the blobs are public. 
+            BlobContainerPermissions permissions = new BlobContainerPermissions
+            {
+                PublicAccess = BlobContainerPublicAccessType.Blob
+            };
+            cloudBlobContainer.SetPermissionsAsync(permissions);
+
+            // Create a file in your local MyDocuments folder to upload to a blob.
+            string localPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string localFileName = "QuickStart_" + Guid.NewGuid().ToString() + ".txt";
+            string sourceFile = Path.Combine(localPath, localFileName);
+            // Write text to the file.
+            var writer = new System.IO.StreamWriter(localFileName);
+            writer.WriteLine("Smart Signal Test Message");
+            writer.Dispose();
+
+
+            // Get a reference to the blob address, then upload the file to the blob.
+            // Use the value of localFileName for the blob name.
+            CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(localFileName);
+            cloudBlockBlob.UploadFromFileAsync(sourceFile);
+
+            return Ok();
         }
 
         public IActionResult Index()
