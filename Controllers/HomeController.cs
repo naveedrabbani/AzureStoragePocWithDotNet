@@ -33,7 +33,8 @@ namespace AzureQueuePocWithDotNet.Controllers
 
             storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             var s = storageAccount.Credentials.AccountName;
-            string response = "Account Name that has been retrieved is " + s;
+            var t =  _configuration["StorageConnectionString"];
+            string response = "Account Name that has been retrieved is " + s + " and connection from settings is " + t;
             return Ok(response);
         }
 
