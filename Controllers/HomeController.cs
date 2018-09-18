@@ -18,27 +18,11 @@ namespace AzureQueuePocWithDotNet.Controllers
         private IConfiguration _configuration;
         private CloudStorageAccount storageAccount;
         private string storageConnectionString;
+        private CloudQueue _queue;
 
         public HomeController(IConfiguration configuration)
         {
             _configuration = configuration;
-            /*storageConnectionString = _configuration["StorageConnectionString"];
-            storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-
-            // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-
-            // Retrieve a reference to a container.
-            CloudQueue queue = queueClient.GetQueueReference("myqueue");
-
-            // Create the queue if it doesn't already exist
-            queue.CreateIfNotExistsAsync();*/
-        }
-
-        [Route("api/v0/myrestendpoint")]
-        [HttpGet]
-        public IActionResult GetStorageConfiguration()
-        {
             storageConnectionString = _configuration["StorageConnectionString"];
             storageAccount = CloudStorageAccount.Parse(storageConnectionString);
 
@@ -46,26 +30,45 @@ namespace AzureQueuePocWithDotNet.Controllers
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
             // Retrieve a reference to a container.
-            CloudQueue queue = queueClient.GetQueueReference("myqueue");
+            _queue = queueClient.GetQueueReference("my-analytics-poc-queue");
 
             // Create the queue if it doesn't already exist
-            queue.CreateIfNotExistsAsync();
+            _queue.CreateIfNotExistsAsync();
+        }
 
+        [Route("api/v0/createmessage")]
+        [HttpGet]
+        public IActionResult CreateMessage()
+        {
+           
             // Create a message and add it to the queue.
-            CloudQueueMessage message = new CloudQueueMessage("Smart Signal POC Message");
-            queue.AddMessageAsync(message);
+            CloudQueueMessage message = new CloudQueueMessage("Smart Signal POC Message ID " + Guid.NewGuid());
+            _queue.AddMessageAsync(message);
 
             // Peek at the next message
-            Task<CloudQueueMessage> peekedMessage = queue.PeekMessageAsync();
+            Task<CloudQueueMessage> peekedMessage = _queue.PeekMessageAsync();
 
             var response = peekedMessage.Result.AsString;
 
-            return Ok("Message in Queue is " + response);
+            return Ok(message + " created in queue " + _queue.Name);
+        }
+
+        [Route("api/v0/peekmessage")]
+        [HttpGet]
+        public IActionResult PeekMessage()
+        {
+
+            // Peek at the next message
+            Task<CloudQueueMessage> message = _queue.GetMessageAsync();
+            var response = message.Result.AsString;
+            _queue.DeleteMessageAsync(message.Result);
+
+            return Ok("Retrieved and deleted " + response + " from " + _queue.Name);
         }
 
         public IActionResult Index()
         {
-            return View();
+            return Ok("Naveed's Azure Storage POC");
         }
 
         public IActionResult About()
