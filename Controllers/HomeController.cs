@@ -49,7 +49,14 @@ namespace AzureQueuePocWithDotNet.Controllers
             CloudQueueMessage message = new CloudQueueMessage("Smart Signal POC Message ID " + Guid.NewGuid());
             _queue.AddMessageAsync(message);
 
-            return Ok(message.AsString + " created in queue " + _queue.Name);
+            var response = new QueueEntry()
+            {
+                QueueName = _queue.Name,
+                QueueMessage = message.AsString,
+                Action = "Enqueue"
+            };
+
+            return Ok(response);
         }
 
         [Route("api/v0/getmessage")]
@@ -59,10 +66,16 @@ namespace AzureQueuePocWithDotNet.Controllers
 
             // Peek at the next message
             Task<CloudQueueMessage> message = _queue.GetMessageAsync();
-            var response = message.Result.AsString;
             _queue.DeleteMessageAsync(message.Result);
 
-            return Ok("Retrieved and deleted " + response + " from " + _queue.Name);
+            var response = new QueueEntry()
+            {
+                QueueName = _queue.Name,
+                QueueMessage = message.Result.AsString,
+                Action = "Dequeue"
+            };
+
+            return Ok(response);
         }
 
         [Route("api/v0/createblob")]
