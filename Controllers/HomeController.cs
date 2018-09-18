@@ -129,7 +129,7 @@ namespace AzureQueuePocWithDotNet.Controllers
             CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(localFileName);
             cloudBlockBlob.DownloadToFileAsync(destinationFile, FileMode.Create);
 
-            return Ok("Downloaded blob: " + localFileName);
+            return Ok("Downloaded blob to " + sourceFile);
         }
 
         public IActionResult Index()
