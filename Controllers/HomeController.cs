@@ -18,26 +18,39 @@ namespace AzureQueuePocWithDotNet.Controllers
 {
     public class HomeController : Controller
     {
-        private IConfiguration _configuration;
-        private CloudStorageAccount storageAccount;
-        private string storageConnectionString;
-        private CloudQueue _queue;
+        private readonly CloudStorageAccount _storageAccount;
+        private readonly CloudQueue _queue;
+        private readonly CloudBlobContainer _cloudBlobContainer;
 
         public HomeController(IConfiguration configuration)
         {
-            _configuration = configuration;
-            storageConnectionString = _configuration["StorageConnectionString"];
-            storageAccount = CloudStorageAccount.Parse(storageConnectionString);
+            var configuration1 = configuration;
+            var storageConnectionString = configuration1["StorageConnectionString"];
+            _storageAccount = CloudStorageAccount.Parse(storageConnectionString);
 
             // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-            var queueName = _configuration["QueueName"];
+            CloudQueueClient queueClient = _storageAccount.CreateCloudQueueClient();
+            var queueName = configuration1["QueueName"];
 
             // Retrieve a reference to a container.
             _queue = queueClient.GetQueueReference(queueName);
 
             // Create the queue if it doesn't already exist
             _queue.CreateIfNotExistsAsync();
+
+            // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
+            CloudBlobClient cloudBlobClient = _storageAccount.CreateCloudBlobClient();
+
+            // Create a container called 'naveed-poc' and append a GUID value to it to make the name unique. 
+            _cloudBlobContainer = cloudBlobClient.GetContainerReference("naveed-container-poc-" + Guid.NewGuid().ToString());
+            _cloudBlobContainer.CreateAsync();
+
+            // Set the permissions so the blobs are public. 
+            BlobContainerPermissions permissions = new BlobContainerPermissions
+            {
+                PublicAccess = BlobContainerPublicAccessType.Blob
+            };
+            _cloudBlobContainer.SetPermissionsAsync(permissions);
         }
 
         [Route("api/v0/createmessage")]
@@ -46,7 +59,7 @@ namespace AzureQueuePocWithDotNet.Controllers
         {
            
             // Create a message and add it to the queue.
-            CloudQueueMessage message = new CloudQueueMessage("Smart Signal POC Message ID " + Guid.NewGuid());
+            CloudQueueMessage message = new CloudQueueMessage("naveed-queue-poc_" + Guid.NewGuid());
             _queue.AddMessageAsync(message);
 
             var response = new QueueEntry()
@@ -82,91 +95,56 @@ namespace AzureQueuePocWithDotNet.Controllers
         [HttpGet]
         public IActionResult CreateBlob()
         {
-
-            // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
-            CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
-
-            // Create a container called 'naveed-poc' and append a GUID value to it to make the name unique. 
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("naveed-poc-" + Guid.NewGuid().ToString());
-            cloudBlobContainer.CreateAsync();
-
-            // Set the permissions so the blobs are public. 
-            BlobContainerPermissions permissions = new BlobContainerPermissions
-            {
-                PublicAccess = BlobContainerPublicAccessType.Blob
-            };
-            cloudBlobContainer.SetPermissionsAsync(permissions);
-
             // Create a file in your local MyDocuments folder to upload to a blob.
             string localPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string localFileName = "SmartSignalPOC_" + Guid.NewGuid().ToString() + ".txt";
+            string localFileName = "naveed-blob-poc_" + Guid.NewGuid().ToString() + ".txt";
             string sourceFile = Path.Combine(localPath, localFileName);
             // Write text to the file.
             var writer = new System.IO.StreamWriter(localFileName);
-            writer.WriteLine("Smart Signal Test Message" + Guid.NewGuid());
+            writer.WriteLine("POC test Data: " + Guid.NewGuid());
             writer.Dispose();
 
 
             // Get a reference to the blob address, then upload the file to the blob.
             // Use the value of localFileName for the blob name.
-            CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(localFileName);
+            CloudBlockBlob cloudBlockBlob = _cloudBlobContainer.GetBlockBlobReference(localFileName);
             cloudBlockBlob.UploadFromFileAsync(sourceFile);
 
-            return Ok("Created a blob: " + localFileName);
+            BlobEntry response = new BlobEntry()
+            {
+                BlobContainer = _cloudBlobContainer.Name,
+                FileName = localFileName,
+                Action = "Upload"
+            };
+
+            return Ok(response);
         }
 
         [Route("api/v0/downloadblob/{blobId}")]
         [HttpGet]
         public IActionResult DownloadBlob(Guid blobId)
         {
-
-            // Create the CloudBlobClient that represents the Blob storage endpoint for the storage account.
-            CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
-
-            // Create a container called 'naveed-poc' and append a GUID value to it to make the name unique. 
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference("naveed-poc-" + Guid.NewGuid().ToString());
-            cloudBlobContainer.CreateAsync();
-
-            // Set the permissions so the blobs are public. 
-            BlobContainerPermissions permissions = new BlobContainerPermissions
-            {
-                PublicAccess = BlobContainerPublicAccessType.Blob
-            };
-            cloudBlobContainer.SetPermissionsAsync(permissions);
-
             var localPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var localFileName = "SmartSignalPOC_" + blobId + ".txt";
+            var localFileName = "naveed-blob-poc_" + blobId + ".txt";
             var sourceFile = Path.Combine(localPath, localFileName);
             var destinationFile = sourceFile.Replace(".txt", "_DOWNLOADED.txt");
-            Console.WriteLine("Downloading blob to {0}", destinationFile);
-            CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(localFileName);
+
+            CloudBlockBlob cloudBlockBlob = _cloudBlobContainer.GetBlockBlobReference(localFileName);
             cloudBlockBlob.DownloadToFileAsync(destinationFile, FileMode.Create);
 
-            return Ok("Downloaded blob to " + localPath + "/" + localFileName);
+            BlobEntry response = new BlobEntry()
+            {
+                BlobContainer = _cloudBlobContainer.Name,
+                FileName = localFileName,
+                Action = "Download"
+            };
+
+            return Ok(response);
         }
 
         public IActionResult Index()
         {
             return View();
         }
-
-        /*public IActionResult About()
-        {
-            ViewData["Message"] = "Your application description page.";
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }*/
     }
 }
