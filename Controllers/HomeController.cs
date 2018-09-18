@@ -28,9 +28,10 @@ namespace AzureQueuePocWithDotNet.Controllers
 
             // Create the queue client.
             CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+            var queueName = _configuration["QueueName"];
 
             // Retrieve a reference to a container.
-            _queue = queueClient.GetQueueReference("my-analytics-poc-queue");
+            _queue = queueClient.GetQueueReference(queueName);
 
             // Create the queue if it doesn't already exist
             _queue.CreateIfNotExistsAsync();
@@ -45,17 +46,12 @@ namespace AzureQueuePocWithDotNet.Controllers
             CloudQueueMessage message = new CloudQueueMessage("Smart Signal POC Message ID " + Guid.NewGuid());
             _queue.AddMessageAsync(message);
 
-            // Peek at the next message
-            Task<CloudQueueMessage> peekedMessage = _queue.PeekMessageAsync();
-
-            var response = peekedMessage.Result.AsString;
-
-            return Ok(message + " created in queue " + _queue.Name);
+            return Ok(message.AsString + " created in queue " + _queue.Name);
         }
 
-        [Route("api/v0/peekmessage")]
+        [Route("api/v0/getmessage")]
         [HttpGet]
-        public IActionResult PeekMessage()
+        public IActionResult GetMessage()
         {
 
             // Peek at the next message
@@ -68,6 +64,7 @@ namespace AzureQueuePocWithDotNet.Controllers
 
         public IActionResult Index()
         {
+            string response = $"<html><h3>Naveed's Azure Storage POC/n. The queue used is {_queue.Name}</h3></html>";
             return Ok("Naveed's Azure Storage POC");
         }
 
