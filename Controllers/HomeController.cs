@@ -43,7 +43,7 @@ namespace AzureQueuePocWithDotNet.Controllers
             storageAccount = CloudStorageAccount.Parse(storageConnectionString);
 
             // Create the queue client.
-            /*CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
             // Retrieve a reference to a container.
             CloudQueue queue = queueClient.GetQueueReference("myqueue");
@@ -52,14 +52,13 @@ namespace AzureQueuePocWithDotNet.Controllers
             queue.CreateIfNotExistsAsync();
 
             // Create a message and add it to the queue.
-            CloudQueueMessage message = new CloudQueueMessage("Hello, World");
+            CloudQueueMessage message = new CloudQueueMessage("Smart Signal POC Message");
             queue.AddMessageAsync(message);
 
             // Peek at the next message
             Task<CloudQueueMessage> peekedMessage = queue.PeekMessageAsync();
 
-            var response = peekedMessage.Result.AsString;*/
-            var response = "testing";
+            var response = peekedMessage.Result.AsString;
 
             return Ok("Message in Queue is " + response);
         }
