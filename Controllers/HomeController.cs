@@ -19,18 +19,20 @@ namespace AzureQueuePocWithDotNet.Controllers
     public class HomeController : Controller
     {
         private readonly CloudStorageAccount _storageAccount;
+        private readonly IConfiguration _configuration;
         private readonly CloudQueue _queue;
         private readonly CloudBlobContainer _cloudBlobContainer;
 
         public HomeController(IConfiguration configuration)
         {
-            var configuration1 = configuration;
-            var storageConnectionString = configuration1["StorageConnectionString"];
+            _configuration = configuration;
+            var storageConnectionString = _configuration["StorageConnectionString"];
             _storageAccount = CloudStorageAccount.Parse(storageConnectionString);
 
             // Create the queue client.
             CloudQueueClient queueClient = _storageAccount.CreateCloudQueueClient();
-            var queueName = configuration1["QueueName"];
+            var queueName = _configuration["QueueName"];
+            var blobStorageContainerName = configuration["BlobContainerName"];
 
             // Retrieve a reference to a container.
             _queue = queueClient.GetQueueReference(queueName);
@@ -42,7 +44,7 @@ namespace AzureQueuePocWithDotNet.Controllers
             CloudBlobClient cloudBlobClient = _storageAccount.CreateCloudBlobClient();
 
             // Create a container called 'naveed-poc' and append a GUID value to it to make the name unique. 
-            _cloudBlobContainer = cloudBlobClient.GetContainerReference("naveed-container-poc-" + Guid.NewGuid().ToString());
+            _cloudBlobContainer = cloudBlobClient.GetContainerReference(blobStorageContainerName);
             _cloudBlobContainer.CreateAsync();
 
             // Set the permissions so the blobs are public. 
@@ -120,7 +122,7 @@ namespace AzureQueuePocWithDotNet.Controllers
             return Ok(response);
         }
 
-        [Route("api/v0/downloadblob/{blobId}")]
+        [Route("api/v0/getblobdetails/{blobId}")]
         [HttpGet]
         public IActionResult DownloadBlob(Guid blobId)
         {
